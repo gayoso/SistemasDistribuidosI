@@ -12,6 +12,8 @@ import java.io.*;
 
 public class FileHelper {
 
+    public static String RABBITMQ_HOST = "localhost";
+
     public static byte[] getFileBytes(String chosenFile) throws IOException {
         return getFileBytes(new File(chosenFile));
     }

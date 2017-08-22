@@ -40,7 +40,7 @@ public class SecurityCamera {
 
         // broker connection
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        factory.setHost(FileHelper.RABBITMQ_HOST);
         Connection connection = factory.newConnection();
 
         // create channel

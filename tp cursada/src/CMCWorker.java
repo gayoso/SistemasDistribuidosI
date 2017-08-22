@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+import static org.bytedeco.javacpp.opencv_face.createLBPHFaceRecognizer;
+
 public class CMCWorker {
 
     public enum DatabaseRequest{
@@ -52,11 +54,16 @@ public class CMCWorker {
 
     public static void main(String[] argv) throws Exception {
 
+        // load opencv library
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
+        // una negrada, para poder usar IntPointer y DoublePointer tengo que inicializar JavaCV
+        // con Loader.load(), pero no se por que falla. Esto llama adentro a Loader.load() y no falla
+        createLBPHFaceRecognizer();
 
         // broker connection
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        factory.setHost(FileHelper.RABBITMQ_HOST);
         Connection connection = factory.newConnection();
 
         // create channel
