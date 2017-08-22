@@ -15,6 +15,8 @@ Correrlo y seguir las indicaciones. Recibe de sus camaras imagenes, corre Face D
 ### CMC
 Correrlo. Recibe requests para modificar las bases de datos.
 
+NOTA: a veces falla diciendo que no se cargo la dll de opencv cpp, a pesar de que esta en la lista en el proyecto de intellij. No se si es que hay que esperar un poco a que se cargue o que, revisar.
+
 UPDATE_FACE: el CMB le manda mensajes con caras detectadas, y la imagen original de la que salio la cara. El CMC guarda las imagenes originales en "database_frames". Corre Face Recognition sobre cada cara recibida, contra ambas bases de datos de SRE y SRPL. Divide los resultados en "database_faces_match" y "database_faces_no_match", segun el caso. Todos los nombres de archivo son ids unicos, en algun formato (ver los comentarios en el codigo fuente por ahora).
 
 UPLOAD_FACE: la interfaz WEB envia una imagen para guardar como cara en una base de datos determinada. Ademas, envia el id de rostro (-1 si es un rostro que no esta en ninguna base). Antes de almacenar la imagen se corre Face Detection sobre la misma para normalizar todo, y solo se almacena si se detecta exactamente 1 rostro en la imagen recibida.
