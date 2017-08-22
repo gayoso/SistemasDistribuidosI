@@ -24,5 +24,8 @@ hs_err_pid*
 # camera_frames
 camera_frames/*
 
+# libros
+libros/*
+
 # .dlls
 *.dll
