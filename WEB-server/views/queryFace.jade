@@ -1,0 +1,10 @@
+extend default
+
+block content
+	p.
+		Query a face
+	
+	form(action='/queryFace', method='post', enctype='multipart/form-data')
+		input(type='file', name='displayImage')
+		div.actions
+			input(type='submit', value='Query Face')

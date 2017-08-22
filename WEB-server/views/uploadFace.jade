@@ -1,0 +1,37 @@
+extend default
+
+block content
+	- response="asd"
+	- showResponse=false
+	
+	p.
+		Upload a face
+	
+	form(action='/uploadFace', method='post', enctype='multipart/form-data')
+		div.input
+			input(type='file', name='displayImage')
+		div.input
+			| SRPL
+			input(type="radio", name="database", value="SRPL", checked=true)
+			| SRE
+			input(type="radio", name="database", value="SRE")
+		div.input
+			input(type='text', name="faceID", value="-1")
+		div.actions
+			input(type='submit', value='Upload Face')
+	
+	if showResponse
+		p. 
+			#{response}
+	
+	div
+		- console.log(showResponse)
+	div
+	
+	div
+		- console.log(response)
+	div
+	
+	div
+		- console.log(title)
+	div

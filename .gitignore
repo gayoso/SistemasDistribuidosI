@@ -28,4 +28,4 @@ camera_frames/*
 libros/*
 
 # .dlls
-*.dll
+#*.dll

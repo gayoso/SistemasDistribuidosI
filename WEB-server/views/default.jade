@@ -1,0 +1,39 @@
+doctype html
+html
+	head
+		title= title
+		link(rel='stylesheet', href='/css/index.css')
+	body
+		.header
+			h1.page-title Third Eye Surveillance System
+
+		//p Welcome! Use this system to add faces to the SRPL or SRE databases, query a face or query a face's movements
+		
+		ul.nav
+			li: a(href='/') Home
+			li: a(href='/uploadFace') Upload New Face
+			li: a(href='/queryFace') Query Face
+			li: a(href='/queryFaceMovements') Query Face Movements
+		
+		.main-content
+			block content
+		
+		//h3 Upload a new face:
+		// boton para subir imagen
+		//form(action='/upload', method='post')
+		//	input(type='submit', value='Start the server')
+
+
+		//h3 Query if face is in SRPL or SRE:
+		// boton para subir imagen
+		//form(action='/upload', method='post')
+		//	input(type='submit', value='Start the server')
+
+
+		//h3 Query face movements:
+		//input(type='text', value='')
+		//input(type='submit', value='Submit Face ID')
+		
+		.footer
+			p Copyright © 2017 Third Eye Surveillance.
+	
