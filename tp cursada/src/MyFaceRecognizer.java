@@ -47,17 +47,17 @@ public class MyFaceRecognizer {
         labelsBuf.put(0, label);
 
         try {
-            faceRecognizer.load(databasePath + "\\" + "lbph_database");
+            faceRecognizer.load(databasePath + "/lbph_database");
             faceRecognizer.update(images, labels);
 
         } catch (Exception e) {
             // database doesn't exist yet
-            faceRecognizer.save(databasePath + "\\" + "lbph_database");
+            faceRecognizer.save(databasePath + "/lbph_database");
             createFromDir(databasePath);
             faceRecognizer.train(images, labels);
 
         } finally {
-            faceRecognizer.save(databasePath + "\\" + "lbph_database");
+            faceRecognizer.save(databasePath + "/lbph_database");
         }
     }
 
@@ -89,10 +89,10 @@ public class MyFaceRecognizer {
         FaceRecognizer faceRecognizer = createLBPHFaceRecognizer();
 
         try {
-            faceRecognizer.load(databasePath + "\\" + "lbph_database");
+            faceRecognizer.load(databasePath + "/lbph_database");
         } catch (Exception e) {
             createFromDir(databasePath);
-            faceRecognizer.load(databasePath + "\\" + "lbph_database");
+            faceRecognizer.load(databasePath + "/lbph_database");
         }
 
         faceRecognizer.predict(testImage, label, confidence);
