@@ -1,9 +1,15 @@
 extend default
 
 block content
-	p.
-		Query a face's movements
+
+	p Query a face's movements
 	
 	form(action='/queryFaceMovements', method='post')
 		input(type="text", name="faceID", value=)
 		input(type='submit', value='Query Face ID')
+		
+	if params.showResponse
+		p #{params.response}
+		
+		if params.match
+			p Database: #{params.databaseID}

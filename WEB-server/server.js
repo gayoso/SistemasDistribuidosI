@@ -46,7 +46,7 @@ app.get('/', function(req, res){
 	
 	res.render('homepage.jade',
     {
-      title: 'Third Eye Surveillance System - Home',
+		params: { title: 'Third Eye Surveillance System - Home' }
     });
 });
 
@@ -56,7 +56,7 @@ app.get('/queryFaceMovements', function(req, res){
 	
 	res.render('queryFaceMovements.jade',
     {
-      title: 'Third Eye Surveillance System - Query Face Movements',
+		params: { title: 'Third Eye Surveillance System - Query Face Movements' }
     });
 });
 
@@ -67,7 +67,7 @@ app.post('/queryFaceMovements', function(req, res){
 	if (!req.body.faceID) {
 		res.render('queryFaceMovements.jade',
 		{
-		  title: 'Third Eye Surveillance System - Query Face Movements',
+			params: { title: 'Third Eye Surveillance System - Query Face Movements' }
 		});
 		return;
 	}
@@ -97,11 +97,16 @@ app.post('/queryFaceMovements', function(req, res){
 				ch.publish('CMC_FANOUT', '', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
 				
 				ch.consume(q.queue, function(msg) {
+				
 					console.log(' [.] Got %s', msg.content.toString());
+					var jsonResponse = JSON.parse(msg.content.toString());
 					
 					res.render('queryFaceMovements.jade',
 					{
-					  title: 'Third Eye Surveillance System - Query Face Movements',
+						params: { title: 'Third Eye Surveillance System - Query Face Movements',
+						showResponse: true, response: jsonResponse["response"], match: jsonResponse["match"],
+						databaseID: jsonResponse["databaseID"], numImages: jsonResponse["dataSize"],
+						data: jsonResponse["data"] }
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);
@@ -121,7 +126,7 @@ app.get('/queryFace', function(req, res){
 		
 	res.render('queryFace.jade',
     {
-      title: 'Third Eye Surveillance System - Query Face',
+		params: { title: 'Third Eye Surveillance System - Query Face' }
     });
 });
 
@@ -132,7 +137,7 @@ app.post('/queryFace', function(req, res){
 	if (!req.files.displayImage) {
 		res.render('queryFace.jade',
 		{
-		  title: 'Third Eye Surveillance System - Query Face',
+			params: { title: 'Third Eye Surveillance System - Query Face' }
 		});
 		return;
 	}
@@ -162,11 +167,15 @@ app.post('/queryFace', function(req, res){
 				ch.publish('CMC_FANOUT', '', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
 				
 				ch.consume(q.queue, function(msg) {
+				
 					console.log(' [.] Got %s', msg.content.toString());
+					var jsonResponse = JSON.parse(msg.content.toString());
 					
 					res.render('queryFace.jade',
 					{
-					  title: 'Third Eye Surveillance System - Query Face',
+						params: { title: 'Third Eye Surveillance System - Query Face', 
+						showResponse: true, response: jsonResponse["response"], match: jsonResponse["match"],
+						faceID: jsonResponse["faceID"], databaseID: jsonResponse["databaseID"]}
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);
@@ -186,7 +195,7 @@ app.get('/uploadFace', function(req, res){
 
 	res.render('uploadFace.jade',
     {
-      title: 'Third Eye Surveillance System - Upload Face',
+		params: { title: 'Third Eye Surveillance System - Upload Face' }
     });
 });
 
@@ -197,7 +206,7 @@ app.post('/uploadFace', function(req, res){
 	if (!req.files.displayImage) {
 		res.render('uploadFace.jade',
 		{
-		  title: 'Third Eye Surveillance System - Upload Face',
+			params: { title: 'Third Eye Surveillance System - Upload Face' }
 		});
 		return;
 	}
@@ -235,11 +244,14 @@ app.post('/uploadFace', function(req, res){
 				ch.publish('CMC_FANOUT', '', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
 				
 				ch.consume(q.queue, function(msg) {
+					
 					console.log(' [.] Got %s', msg.content.toString());
+					var jsonResponse = JSON.parse(msg.content.toString());
+					var textResponse = jsonResponse["response"];
 					
 					res.render('uploadFace.jade',
 					{
-					  title: 'Third Eye Surveillance System - Upload Face', showResponse: true, response: msg.content["response"]
+						params: { title: 'Third Eye Surveillance System - Upload Face', showResponse: true, response: textResponse }
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);
@@ -257,5 +269,5 @@ app.post('/uploadFace', function(req, res){
 
 // start server
 http.createServer(app).listen(app.get('port'), function(){
-  console.log(" [*] RabbitMQ + Node.js server running!");
+	console.log(" [*] RabbitMQ + Node.js server running!");
 });

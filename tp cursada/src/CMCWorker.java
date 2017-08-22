@@ -193,8 +193,8 @@ public class CMCWorker {
 
                         // write image to database
                         try{
-                            ImageIO.write(faces.get(0), "png", new File("../database_" + databaseID + "/" + faceIDString + ".png"));
                             MyFaceRecognizer.addTrainingImage("../database_" + databaseID, faces.get(0), faceID);
+                            ImageIO.write(faces.get(0), "png", new File("../database_" + databaseID + "/" + faceIDString + ".png"));
 
                             // reply ok
                             JSONObject message = new JSONObject();
@@ -313,7 +313,7 @@ public class CMCWorker {
                     int faceID = jsonMessage.getInt("faceID");
 
                     // get database id
-                    /*String databaseID = "";
+                    String databaseID = "";
 
                     FilenameFilter image_files = new FilenameFilter() {
                         public boolean accept(File dir, String name) {
@@ -340,7 +340,7 @@ public class CMCWorker {
                                 break;
                             }
                         }
-                    }*/
+                    }
 
                     // --------------- VER MOVIMIENTOS
                     // en la carpeta database_faces_match hay un archivo por cada cara detectada exitosamente, y su nombre tiene la forma:
@@ -369,6 +369,7 @@ public class CMCWorker {
 
                         message.put("match", true);
                         message.put("response", "Success!");
+                        message.put("databaseID", databaseID);
 
                         JSONArray data = new JSONArray();
 

@@ -52,11 +52,12 @@ public class MyFaceRecognizer {
 
         } catch (Exception e) {
             // database doesn't exist yet
+            faceRecognizer.save(databasePath + "\\" + "lbph_database");
+            createFromDir(databasePath);
             faceRecognizer.train(images, labels);
 
         } finally {
             faceRecognizer.save(databasePath + "\\" + "lbph_database");
-
         }
     }
 
