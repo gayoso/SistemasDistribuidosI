@@ -52,8 +52,8 @@ public class MyFaceRecognizer {
 
         } catch (Exception e) {
             // database doesn't exist yet
-            faceRecognizer.save(databasePath + "/lbph_database");
-            createFromDir(databasePath);
+            //faceRecognizer.save(databasePath + "/lbph_database");
+            //createFromDir(databasePath);
             faceRecognizer.train(images, labels);
 
         } finally {
@@ -91,8 +91,12 @@ public class MyFaceRecognizer {
         try {
             faceRecognizer.load(databasePath + "/lbph_database");
         } catch (Exception e) {
-            createFromDir(databasePath);
-            faceRecognizer.load(databasePath + "/lbph_database");
+            //createFromDir(databasePath);
+            //faceRecognizer.load(databasePath + "/lbph_database");
+
+            label.put(-1);
+            confidence.put(999);
+            return;
         }
 
         faceRecognizer.predict(testImage, label, confidence);

@@ -14,6 +14,22 @@ public class SecurityCamera {
 
     public static void main(String[] argv) throws Exception {
 
+        String rabbitmqHost;
+        if (argv.length == 2) {
+            rabbitmqHost = argv[1];
+        } else {
+            rabbitmqHost = FileHelper.RABBITMQ_HOST;
+        }
+
+        String fileOrDirToSend;
+        if (argv.length < 1) {
+            System.out.println(" [E] Please specify a file or directory to send as the first argument. Defaulting to 'camera_frames_test' dir");
+            //fileOrDirToSend = "../camera_frames_test/";
+            fileOrDirToSend = "../camera_frames_test/arnold-7.jpg";
+        } else {
+            fileOrDirToSend = argv[0];
+        }
+
         // define CMBid
         System.out.println("Please enter CMBid: ");
         int CMBid = new Scanner(System.in).nextInt();
@@ -40,7 +56,7 @@ public class SecurityCamera {
 
         // broker connection
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(FileHelper.RABBITMQ_HOST);
+        factory.setHost(rabbitmqHost);
         Connection connection = factory.newConnection();
 
         // create channel
@@ -58,8 +74,20 @@ public class SecurityCamera {
 
         /* ******************************************************** */
 
+        File dir = new File(fileOrDirToSend);
+        List<File> framesToSend = new ArrayList<>();
+
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            for (File f : files) {
+                framesToSend.add(f);
+            }
+        } else {
+            framesToSend.add(dir);
+        }
+
         // choose frames to send
-        File dir = new File("../camera_frames_test/");
+        /*File dir = new File("../camera_frames_test/");
         File[] files = dir.listFiles();
         List<File> framesToSend = new ArrayList<>();
 
@@ -67,7 +95,7 @@ public class SecurityCamera {
         // get a random frame filename
         for (File f : files) {
             framesToSend.add(f);
-        }
+        }*/
 
         // send 'framesAmount' random frames form a folder
         /*System.out.println("Please enter amount of frames to send: ");

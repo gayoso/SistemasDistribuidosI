@@ -52,18 +52,61 @@ public class CMCWorker {
         }
     }
 
+    private static void init() {
+        File faces_match_dir = new File("../database_faces_match");
+        if (!faces_match_dir.exists()) {
+            faces_match_dir.mkdir();
+        }
+
+        File faces_no_match_dir = new File("../database_faces_no_match");
+        if (!faces_no_match_dir.exists()) {
+            faces_no_match_dir.mkdir();
+        }
+
+        File frames_dir = new File("../database_frames");
+        if (!frames_dir.exists()) {
+            frames_dir.mkdir();
+        }
+
+        File database_SRE_dir = new File("../database_SRE");
+        if (!database_SRE_dir.exists()) {
+            database_SRE_dir.mkdir();
+        }
+
+        File database_SRPL_dir = new File("../database_SRPL");
+        if (!database_SRPL_dir.exists()) {
+            database_SRPL_dir.mkdir();
+        }
+
+        File database_SRE = new File("../database_SRE/lbph_database");
+        if (!database_SRE.exists()) {
+            MyFaceRecognizer.createFromDir("../database_SRE");
+        }
+
+        File database_SRPL = new File("../database_SRPL/lbph_database");
+        if (!database_SRPL.exists()) {
+            MyFaceRecognizer.createFromDir("../database_SRPL");
+        }
+    }
+
     public static void main(String[] argv) throws Exception {
+
+        String rabbitmqHost;
+        if (argv.length == 1) {
+            rabbitmqHost = argv[0];
+        } else {
+            rabbitmqHost = FileHelper.RABBITMQ_HOST;
+        }
 
         // load opencv library
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        // una negrada, para poder usar IntPointer y DoublePointer tengo que inicializar JavaCV
-        // con Loader.load(), pero no se por que falla. Esto llama adentro a Loader.load() y no falla
-        createLBPHFaceRecognizer();
+        // init databases
+        init();
 
         // broker connection
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(FileHelper.RABBITMQ_HOST);
+        factory.setHost(rabbitmqHost);
         Connection connection = factory.newConnection();
 
         // create channel

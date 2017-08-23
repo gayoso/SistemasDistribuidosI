@@ -14,6 +14,13 @@ public class CMBWorker {
 
     public static void main(String[] argv) throws Exception {
 
+        String rabbitmqHost;
+        if (argv.length == 1) {
+            rabbitmqHost = argv[0];
+        } else {
+            rabbitmqHost = FileHelper.RABBITMQ_HOST;
+        }
+
         // define CMBid
         System.out.println("Please enter CMBid: ");
         int CMBid = new Scanner(System.in).nextInt();
@@ -21,7 +28,7 @@ public class CMBWorker {
 
         // broker connection
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(FileHelper.RABBITMQ_HOST);
+        factory.setHost(rabbitmqHost);
         Connection connection = factory.newConnection();
 
         // create channel
