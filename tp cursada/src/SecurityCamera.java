@@ -24,8 +24,8 @@ public class SecurityCamera {
         String fileOrDirToSend;
         if (argv.length < 1) {
             System.out.println(" [E] Please specify a file or directory to send as the first argument. Defaulting to 'camera_frames_test' dir");
-            //fileOrDirToSend = "../camera_frames_test/";
-            fileOrDirToSend = "../camera_frames_test/arnold-7.jpg";
+            fileOrDirToSend = "../camera_frames_test/";
+            //fileOrDirToSend = "../camera_frames_test/arnold-7.jpg";
         } else {
             fileOrDirToSend = argv[0];
         }
