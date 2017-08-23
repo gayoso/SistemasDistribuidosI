@@ -4,7 +4,7 @@
 JavaCV 1.3.3
 OpenCV 3.3
 
-### Para buildear OpenCV
+### Para buildear OpenCV (no hace falta, ya esta la libreria en /lib)
 sudo app-get install ant
 export JAVA_HOME='path a java jdk'
 
@@ -17,6 +17,9 @@ sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavform
 sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
 
 Con eso y las libs que estan en el proyecto deberia andar
+
+### Para correr en limpio
+Borrar las carpetas 'database_faces_match', 'database_faces_no_match' y 'database_frames'. Borrar los archivos 'database_SRE/lbph_database' y 'database_SRPL/lbph_database'. Borrar de esas carpetas las imagenes que no se quieren entrenar. Correr el CMC, se crean de nuevo las carpetas (vacias) y se crean y entrenan las bases de datos con las imagenes que esten en sus respectivas carpetas. Correr uno mas CMBs, correr una o mas SecurityCameras con el mismo id de CMB.
 
 ### Para correr la interfaz WEB (todavia no probado en Ubuntu)
 sudo apt-get install nodejs-legacy
@@ -36,7 +39,7 @@ Correrlo y seguir las indicaciones. Envia todos los archivos en "camera_frames_t
 Correrlo y seguir las indicaciones. Recibe de sus camaras imagenes, corre Face Detection en cada imagen y envia cada cara encontrada al CMC
 
 ### CMC
-Correrlo. Recibe requests para modificar las bases de datos.
+Correrlo. Recibe requests para modificar las bases de datos. Si las bases de datos no fueron creadas (el archivo 'lbph_database' en cada carpeta de base de datos), las crea y entrena con todas las caras en las respectivas carpetas.
 
 NOTA: a veces falla diciendo que no se cargo la dll de opencv cpp, a pesar de que esta en la lista en el proyecto de intellij. No se si es que hay que esperar un poco a que se cargue o que, revisar.
 
