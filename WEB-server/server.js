@@ -106,7 +106,7 @@ app.post('/queryFaceMovements', function(req, res){
 						params: { title: 'Third Eye Surveillance System - Query Face Movements',
 						showResponse: true, response: jsonResponse["response"], match: jsonResponse["match"],
 						databaseID: jsonResponse["databaseID"], numImages: jsonResponse["dataSize"],
-						data: jsonResponse["data"] }
+						data: jsonResponse["data"], date: jsonResponse["date"] }
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);

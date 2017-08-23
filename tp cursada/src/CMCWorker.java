@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -53,6 +54,10 @@ public class CMCWorker {
     }
 
     private static void init() {
+
+        // negrada para que se importe bien la libreria JavaCV, sino falla al usar IntPointer y DoublePointer
+        createLBPHFaceRecognizer();
+
         File faces_match_dir = new File("../database_faces_match");
         if (!faces_match_dir.exists()) {
             faces_match_dir.mkdir();
@@ -428,18 +433,34 @@ public class CMCWorker {
                             JSONObject matchInfo = new JSONObject();
 
                             String[] tokens = (f.getName().split("-", 2)[1]).split("_");
+
+                            // coords
                             double coordX = Double.parseDouble(tokens[0]);
                             double coordY = Double.parseDouble(tokens[1]);
-                            String frameFilename = "../database_frames/" + tokens[2] + ".png";
+
+                            // image
+                            String frameFilename = "../database_frames/" + tokens[2] + "_" + tokens[3] + "_" + tokens[4] + ".png";
                             byte[] image = FileHelper.getFileBytes(frameFilename);
                             String encodedImage = Base64.encode(image);
 
-                            //System.out.println(faceID + ": " + frameFilename + " " + coordX + " " + coordY);
+                            // date
+                            String originalDateString = tokens[2];
+                            String finalDateString;
+                            SimpleDateFormat input = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                            try {
+                                Date dateValue = input.parse(originalDateString);
+                                SimpleDateFormat output = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                                finalDateString = output.format(dateValue);
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                                finalDateString = "00/00/0000 00:00:00";
+                            }
 
+                            // assemble json
                             matchInfo.put("coordX", coordX);
                             matchInfo.put("coordY", coordY);
                             matchInfo.put("encodedImage", encodedImage);
-                            //matchInfo.put("encodedImage", "a");
+                            matchInfo.put("date", finalDateString);
 
                             data.put(matchInfo);
                         }

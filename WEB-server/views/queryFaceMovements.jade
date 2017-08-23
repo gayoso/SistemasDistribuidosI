@@ -15,8 +15,7 @@ block content
 			p Database: #{params.databaseID}
 			
 			each val in params.data
-				p Latitude: #{val.coordX} , Longitude: #{val.coordY}
 				img(src='data:image/jpg;base64,#{val.encodedImage}')
-				p
-				p
+				p. 
+					Date: #{val.date}, Latitude: #{val.coordX}, Longitude: #{val.coordY}
 					

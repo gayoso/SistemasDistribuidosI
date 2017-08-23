@@ -7,14 +7,15 @@ block content
 	form(action='/uploadFace', method='post', enctype='multipart/form-data')
 		div.input
 			input(type='file', name='displayImage')
+		p  
 		div.input
-			| SRPL
 			input(type="radio", name="database", value="SRPL", checked=true)
-			| SRE
+			|  SRPL 
 			input(type="radio", name="database", value="SRE")
+			|  SRE
+		p  
 		div.input
 			input(type='text', name="faceID", value="-1")
-		div.actions
 			input(type='submit', value='Upload Face')
 
 	if params.showResponse

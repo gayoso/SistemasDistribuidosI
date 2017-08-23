@@ -97,7 +97,7 @@ public class CMBWorker {
                     JSONObject faceMessage = new JSONObject();
 
                     // put original frame id
-                    String frameID = CMBid + id;
+                    String frameID = id + "_" + "CMB" + CMBid;
                     faceMessage.put("frameID", frameID);
                     // put original frame
                     faceMessage.put("fileByte64", encodedImage);

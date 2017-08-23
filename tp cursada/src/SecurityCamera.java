@@ -125,7 +125,7 @@ public class SecurityCamera {
 
             // determine image id
             DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-            String imageID = CAM_NAME + dateFormat.format(new Date()); //2016_11_16_12_08_43
+            String imageID = dateFormat.format(new Date()) + "_" + CAM_NAME;
 
             // assemble json message
             JSONObject message = new JSONObject();
