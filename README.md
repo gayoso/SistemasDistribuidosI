@@ -1,5 +1,11 @@
 # Sistemas Distribuidos I
 
+## RabbitMQ
+
+Es necesario tener corriendo el RabbitMQ Server ya sea en Windows como en Linux.
+Apuntar las variables 'RABBITMQ_HOST' dentro de FileHelper.java y 'rabbitMQserverAddress' en server.js a la direccion del servidor de RabbitMQ.
+Si el servidor esta en otra computadora, hay que habilitar que acepte conexiones remotas: https://www.rabbitmq.com/access-control.html
+
 ## Setup en Linux
 
 ### Para correr la parte de java en Linux (probado en Ubuntu)
