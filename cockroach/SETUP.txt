@@ -1,0 +1,35 @@
+# CMC y setup inicial
+
+cockroach start --insecure --host=localhost --store=cmc --port=26257
+cockroach user set gabriel --insecure
+cockroach sql --insecure --host=localhost -e 'CREATE DATABASE movements;'
+cockroach sql --insecure --host=localhost -e 'GRANT ALL ON DATABASE movements TO gabriel;'
+
+cockroach sql --insecure --host=localhost --database=movements --user=gabriel
+
+CREATE TABLE faces (
+	id INT NOT NULL,
+	name STRING(50) NOT NULL,
+	database STRING(4) NOT NULL,
+	CONSTRAINT faces_pk PRIMARY KEY (id ASC),
+	FAMILY "primary" (id, name, database)
+);
+
+CREATE TABLE movements (
+	face_id INT NOT NULL,
+	cmb_id INT NOT NULL,
+	cam_id INT NOT NULL,
+	coord_x FLOAT NOT NULL,
+	coord_y FLOAT NOT NULL,
+	date TIMESTAMP NOT NULL,
+	image BYTEA NULL,
+	CONSTRAINT movements_pk PRIMARY KEY (face_id ASC, cmb_id ASC, cam_id ASC, date ASC),
+	FAMILY "primary" (face_id, cmb_id, cam_id, coord_x, coord_y, date, image)
+);
+
+# admin htttp
+localhost:8080
+
+# CMB con join a db existente
+
+cockroach start --insecure --host=localhost --store=cmb1 --port=26257 --join=192.168.0.30:26257

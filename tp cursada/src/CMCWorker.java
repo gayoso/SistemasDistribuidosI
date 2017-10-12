@@ -251,6 +251,9 @@ public class CMCWorker {
                             MyFaceRecognizer.addTrainingImage("../database_" + databaseID, faces.get(0), faceID);
                             ImageIO.write(faces.get(0), "png", new File("../database_" + databaseID + "/" + faceIDString + ".png"));
 
+                            if (faceIDsecundario == 1)
+                                CockroachConnector.addFace(faceID, Integer.toString(faceID), databaseID);
+
                             // reply ok
                             JSONObject message = new JSONObject();
                             message.put("response", "Success!"); // cambiar
@@ -354,7 +357,7 @@ public class CMCWorker {
                                 message.put("match", true);
                                 message.put("faceID", label_SRPL.get(0));
                                 message.put("response", "Success!");
-                                message.put("databaseID", "SRE");
+                                message.put("databaseID", "SRPL");
                                 // mandar alguna imagen?
                                 channel.basicPublish( "", properties.getReplyTo(), MessageProperties.BASIC, message.toString().getBytes("UTF-8"));
 
@@ -412,7 +415,7 @@ public class CMCWorker {
                     File matchesRoot = new File("../database_faces_match");
                     File[] matchesFiles = matchesRoot.listFiles(imgFilter);
 
-                    // --------------- ENVIAR MOVIMIENTOS (y fotos?)
+                    // --------------- ENVIAR MOVIMIENTOS
                     JSONObject message = new JSONObject();
 
                     if (matchesFiles.length <= 0) {
@@ -515,6 +518,28 @@ public class CMCWorker {
                         ImageIO.write(face, "png", new File(faceCoordsPath));
                     } else {
 
+                        String[] tokens = faceID.split("_");
+
+                        // date
+                        String originalDateString = tokens[0];
+                        String finalDateString;
+                        SimpleDateFormat input = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                        try {
+                            Date dateValue = input.parse(originalDateString);
+                            SimpleDateFormat output = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                            finalDateString = output.format(dateValue);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                            finalDateString = "00-00-0000 00:00:00.000";
+                        }
+
+                        // camID
+                        int camID = Integer.valueOf(tokens[1].substring(3));
+
+                        // cmbID
+                        int cmbID = Integer.valueOf(tokens[2].substring(3));
+
+
                         // check SRE
                         if (confidence_SRE.get(0) < confidence_SRPL.get(0)) {
 
@@ -527,6 +552,9 @@ public class CMCWorker {
                                     label_SRE.get(0) + "-" + coordinates_x + "_" + coordinates_y + "_" + faceID + ".png";
                             ImageIO.write(face, "png", new File(faceCoordsPath));
 
+                            // write to cockroach
+                            CockroachConnector.addMovement(label_SRE.get(0), cmbID, camID, (float)coordinates_x, (float)coordinates_y, finalDateString, decodedFace);
+
                         } else {
 
                             System.out.println(" [x] Recieved face id: " + faceID +
@@ -537,6 +565,9 @@ public class CMCWorker {
                             String faceCoordsPath = "../database_faces_match/" +
                                     label_SRPL.get(0) + "-" + coordinates_x + "_" + coordinates_y + "_" + faceID + ".png";
                             ImageIO.write(face, "png", new File(faceCoordsPath));
+
+                            // write to cockroach
+                            CockroachConnector.addMovement(label_SRE.get(0), cmbID, camID, (float)coordinates_x, (float)coordinates_y, finalDateString, decodedFace);
                         }
                     }
 
