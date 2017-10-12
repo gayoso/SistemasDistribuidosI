@@ -2,6 +2,8 @@
 // npm install jade
 // npm install body-parser
 
+var rabbitMQserverAddress = "localhost";
+
 var express = require('express'),
 http = require('http'),
 path = require('path'),
@@ -73,7 +75,7 @@ app.post('/queryFaceMovements', function(req, res){
 	}
 	
 	// create conection
-	amqp.connect('amqp://localhost', function(err, conn) {
+	amqp.connect('amqp://' + rabbitMQserverAddress, function(err, conn) {
 	
 		// create channel
 		conn.createChannel(function(err, ch) {
@@ -143,7 +145,7 @@ app.post('/queryFace', function(req, res){
 	}
 	
 	// create conection
-	amqp.connect('amqp://localhost', function(err, conn) {
+	amqp.connect('amqp://' + rabbitMQserverAddress, function(err, conn) {
 	
 		// create channel
 		conn.createChannel(function(err, ch) {
@@ -212,7 +214,7 @@ app.post('/uploadFace', function(req, res){
 	}
 	
 	// create conection
-	amqp.connect('amqp://localhost', function(err, conn) {
+	amqp.connect('amqp://' + rabbitMQserverAddress, function(err, conn) {
 	
 		// create channel
 		conn.createChannel(function(err, ch) {
