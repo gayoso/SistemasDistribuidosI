@@ -66,21 +66,27 @@ app.get('/queryFaceMovements', function(req, res){
 app.post('/queryFaceMovements', function(req, res){
 	console.log(" [x] POST /queryFaceMovements");
 	
+	var done = false;
+	var timeoutMsg = "CMC not online";
+	//console.log(req.body);
+	
 	if (!req.body.faceID) {
 		res.render('queryFaceMovements.jade',
 		{
 			params: { title: 'Third Eye Surveillance System - Query Face Movements' }
 		});
+		done = true;
 		return;
 	}
 	
 	// create conection
 	amqp.connect('amqp://' + rabbitMQserverAddress, function(err, conn) {
-	
+		
 		// create channel
 		conn.createChannel(function(err, ch) {
+			
 			// create exchange to CMC
-			ch.assertExchange('CMC_FANOUT', 'fanout', {durable: false})
+			ch.assertExchange('CMC_DIRECT', 'direct', {durable: false})
 
 			// create response queue
 			var queue = ch.assertQueue('', {exclusive: true}, function(err, q) {
@@ -96,7 +102,14 @@ app.post('/queryFaceMovements', function(req, res){
 				jsonMessage["faceID"] = faceID;
 				jsonMessage["requestType"] = 3; // QUERY FACE MOVEMENTS
 				
-				ch.publish('CMC_FANOUT', '', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
+				var tag = req.body.server;
+				if (tag == 'cmb') {
+					tag = tag.concat(req.body.server_cmb);
+					timeoutMsg = "CMB" +  req.body.server_cmb + " not online";
+				}
+				//console.log(tag);
+				
+				ch.publish('CMC_DIRECT', tag, new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
 				
 				ch.consume(q.queue, function(msg) {
 				
@@ -112,14 +125,29 @@ app.post('/queryFaceMovements', function(req, res){
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);
+					done = true;
 				}, {noAck: true});
 				
 			});
 
 		});
-
+		
+		setTimeout(function() {
+			
+			if (!done) {
+				conn.close();
+				res.render('queryFaceMovements.jade',
+				{
+					params: { title: 'Third Eye Surveillance System - Query Face Movements',
+					showResponse: true, response: timeoutMsg }
+				});
+			}
+			return 
+		
+		}, 2000);
+		
 	});
-
+	
 });
 
 // GET localhost:3000/queryFace
@@ -136,11 +164,14 @@ app.get('/queryFace', function(req, res){
 app.post('/queryFace', function(req, res){
 	console.log(" [x] POST /queryFace");
 	
+	var done = false;
+	
 	if (!req.files.displayImage) {
 		res.render('queryFace.jade',
 		{
 			params: { title: 'Third Eye Surveillance System - Query Face' }
 		});
+		done = true;
 		return;
 	}
 	
@@ -150,7 +181,7 @@ app.post('/queryFace', function(req, res){
 		// create channel
 		conn.createChannel(function(err, ch) {
 			// create exchange to CMC
-			ch.assertExchange('CMC_FANOUT', 'fanout', {durable: false})
+			ch.assertExchange('CMC_DIRECT', 'direct', {durable: false})
 
 			// create response queue
 			var queue = ch.assertQueue('', {exclusive: true}, function(err, q) {
@@ -166,7 +197,7 @@ app.post('/queryFace', function(req, res){
 				jsonMessage["fileByte64"] = base64data;
 				jsonMessage["requestType"] = 2; // QUERY FACE
 				
-				ch.publish('CMC_FANOUT', '', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
+				ch.publish('CMC_DIRECT', 'cmc', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
 				
 				ch.consume(q.queue, function(msg) {
 				
@@ -181,11 +212,26 @@ app.post('/queryFace', function(req, res){
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);
+					done = true;
 				}, {noAck: true});
 				
 			});
 
 		});
+		
+		setTimeout(function() {
+			
+			if (!done) {
+				conn.close();
+				res.render('queryFace.jade',
+				{
+					params: { title: 'Third Eye Surveillance System - Query Face',
+					showResponse: true, response: "ERROR: CMC not online" }
+				});
+			}
+			return 
+		
+		}, 2000);
 
 	});
 
@@ -205,11 +251,14 @@ app.get('/uploadFace', function(req, res){
 app.post('/uploadFace', function(req, res){
 	console.log(" [x] POST /uploadFace");
 	
+	var done = false;
+	
 	if (!req.files.displayImage) {
 		res.render('uploadFace.jade',
 		{
 			params: { title: 'Third Eye Surveillance System - Upload Face' }
 		});
+		done = true;
 		return;
 	}
 	
@@ -219,7 +268,7 @@ app.post('/uploadFace', function(req, res){
 		// create channel
 		conn.createChannel(function(err, ch) {
 			// create exchange to CMC
-			ch.assertExchange('CMC_FANOUT', 'fanout', {durable: false})
+			ch.assertExchange('CMC_DIRECT', 'direct', {durable: false})
 
 			// create response queue
 			var queue = ch.assertQueue('', {exclusive: true}, function(err, q) {
@@ -243,7 +292,7 @@ app.post('/uploadFace', function(req, res){
 				jsonMessage["fileByte64"] = base64data;
 				jsonMessage["requestType"] = 0; // UPLOAD FACE
 				
-				ch.publish('CMC_FANOUT', '', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
+				ch.publish('CMC_DIRECT', 'cmc', new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
 				
 				ch.consume(q.queue, function(msg) {
 					
@@ -257,11 +306,26 @@ app.post('/uploadFace', function(req, res){
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);
+					done = true;
 				}, {noAck: true});
 				
 			});
 
 		});
+		
+		setTimeout(function() {
+		
+			if (!done) {
+				conn.close();
+				res.render('uploadFace.jade',
+				{
+					params: { title: 'Third Eye Surveillance System - Upload Face',
+					showResponse: true, response: "ERROR: CMC not online" }
+				});
+			}
+			return 
+		
+		}, 2000);
 
 	});
 

@@ -1,13 +1,16 @@
 import com.rabbitmq.client.*;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.opencv.core.Mat;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 // Recieves a frame and does face detection on it
 public class CMBWorker {
@@ -25,6 +28,9 @@ public class CMBWorker {
         System.out.println("Please enter CMBid: ");
         int CMBid = new Scanner(System.in).nextInt();
         String CMB_QUEUE_NAME = "CMB" + Integer.toString(CMBid);
+        String CMB_WEB_QUEUE_NAME = "CMB_WEB_" + Integer.toString(CMBid);
+
+        CockroachConnector.init("localhost", Integer.toString(26257 + CMBid));
 
         // broker connection
         ConnectionFactory factory = new ConnectionFactory();
@@ -37,8 +43,8 @@ public class CMBWorker {
         /* ******************************************************** */
 
         // create CMB-CMC exchange
-        final String CMC_EXCHANGE_NAME = "CMC" + "_FANOUT";
-        channel.exchangeDeclare(CMC_EXCHANGE_NAME, "fanout");
+        final String CMC_EXCHANGE_NAME = "CMC" + "_DIRECT";
+        channel.exchangeDeclare(CMC_EXCHANGE_NAME, "direct");
 
         /* ******************************************************** */
 
@@ -55,6 +61,18 @@ public class CMBWorker {
 
         // bind CAMERAS-CMB queue to exchange
         channel.queueBind(CMB_QUEUE_NAME, CMB_EXCHANGE_NAME, "");
+
+        /* ******************************************************** */
+
+        // create WEB-CMB queue
+        durable = true;
+        channel.queueDeclare(CMB_WEB_QUEUE_NAME, durable, false, false, null);
+        // only allow one message at a time
+        prefetchCount = 1;
+        channel.basicQos(prefetchCount);
+
+        // bind WEB-CMB queue to exchange
+        channel.queueBind(CMB_WEB_QUEUE_NAME, CMC_EXCHANGE_NAME, "cmb" + Integer.toString(CMBid));
 
         /* ******************************************************** */
 
@@ -115,7 +133,7 @@ public class CMBWorker {
                     // put request type
                     faceMessage.put("requestType", CMCWorker.DatabaseRequest.UPDATE_FACE.toInt());
 
-                    channel.basicPublish(CMC_EXCHANGE_NAME, "", MessageProperties.PERSISTENT_TEXT_PLAIN, faceMessage.toString().getBytes("UTF-8"));
+                    channel.basicPublish(CMC_EXCHANGE_NAME, "cmc", MessageProperties.PERSISTENT_TEXT_PLAIN, faceMessage.toString().getBytes("UTF-8"));
                     System.out.println(" [x] Sent image with filename: " + faceId);
                 }
 
@@ -126,5 +144,93 @@ public class CMBWorker {
 
         boolean autoAck = false;
         channel.basicConsume(CMB_QUEUE_NAME, autoAck, consumer);
+
+
+        Consumer consumer2 = new DefaultConsumer(channel) {
+
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
+                    throws IOException {
+
+                // assemble json message
+                JSONObject jsonMessage = new JSONObject(new String(body, "UTF-8"));
+
+                // check request type (ver error aca)
+                CMCWorker.DatabaseRequest requestType = CMCWorker.DatabaseRequest.fromInt(jsonMessage.getInt("requestType"));
+                System.out.println(" [x] Received a request with type: " + requestType);
+
+                if (requestType == CMCWorker.DatabaseRequest.QUERY_FACE_MOVEMENTS) {
+
+                    // get face id
+                    int faceID = jsonMessage.getInt("faceID");
+
+                    // get database id
+                    String databaseID = "";
+
+                    LinkedList<MovementsStruct> movements = new LinkedList<>();
+                    CockroachConnector.getMovements(faceID, movements);
+
+                    // --------------- ENVIAR MOVIMIENTOS
+                    JSONObject message = new JSONObject();
+
+                    if (movements.size() <= 0) {
+
+                        message.put("match", false);
+                        message.put("response", "Error: no results found for given faceID");
+
+                    } else {
+
+                        message.put("match", true);
+                        message.put("response", "Success!");
+                        message.put("databaseID", databaseID);
+
+                        JSONArray data = new JSONArray();
+
+                        for (MovementsStruct ms : movements) {
+
+                            JSONObject matchInfo = new JSONObject();
+
+                            // image
+                            String encodedImage = Base64.encode(ms.image);
+
+                            // date
+                            String originalDateString = ms.date;
+                            String finalDateString = originalDateString;
+                            /*SimpleDateFormat input = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                            try {
+                                Date dateValue = input.parse(originalDateString);
+                                SimpleDateFormat output = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                                finalDateString = output.format(dateValue);
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                                finalDateString = "00/00/0000 00:00:00";
+                            }*/
+
+                            // assemble json
+                            matchInfo.put("coordX", ms.coordX);
+                            matchInfo.put("coordY", ms.coordY);
+                            matchInfo.put("encodedImage", encodedImage);
+                            matchInfo.put("date", finalDateString);
+
+                            data.put(matchInfo);
+                        }
+
+                        message.put("dataSize", data.length());
+                        message.put("data", data);
+                    }
+
+                    channel.basicPublish("", properties.getReplyTo(), MessageProperties.BASIC, message.toString().getBytes("UTF-8"));
+
+                } else {
+                    System.out.println(" [E] Received request with id different from QUERY_FACE_MOVEMENTS");
+                }
+
+                System.out.println(" [x] Done");
+                channel.basicAck(envelope.getDeliveryTag(), false);
+            }
+        };
+
+        autoAck = false;
+        channel.basicConsume(CMB_WEB_QUEUE_NAME, autoAck, consumer2);
     }
 }

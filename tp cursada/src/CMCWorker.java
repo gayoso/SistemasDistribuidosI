@@ -92,6 +92,8 @@ public class CMCWorker {
         if (!database_SRPL.exists()) {
             MyFaceRecognizer.createFromDir("../database_SRPL");
         }
+
+        CockroachConnector.init("localhost", "26257");
     }
 
     public static void main(String[] argv) throws Exception {
@@ -120,8 +122,8 @@ public class CMCWorker {
         /* ******************************************************** */
 
         // create CMB-CMC exchange
-        final String CMC_EXCHANGE_NAME = "CMC" + "_FANOUT";
-        channel.exchangeDeclare(CMC_EXCHANGE_NAME, "fanout");
+        final String CMC_EXCHANGE_NAME = "CMC" + "_DIRECT";
+        channel.exchangeDeclare(CMC_EXCHANGE_NAME, "direct");
 
         // create CMB-CMC queue
         String CMC_QUEUE_NAME = "CMC";
@@ -132,7 +134,7 @@ public class CMCWorker {
         channel.basicQos(prefetchCount);
 
         // bind CMB-CMC queue to exchange
-        channel.queueBind(CMC_QUEUE_NAME, CMC_EXCHANGE_NAME, "");
+        channel.queueBind(CMC_QUEUE_NAME, CMC_EXCHANGE_NAME, "cmc");
 
         /* ******************************************************** */
 
@@ -251,8 +253,8 @@ public class CMCWorker {
                             MyFaceRecognizer.addTrainingImage("../database_" + databaseID, faces.get(0), faceID);
                             ImageIO.write(faces.get(0), "png", new File("../database_" + databaseID + "/" + faceIDString + ".png"));
 
-                            if (faceIDsecundario == 1)
-                                CockroachConnector.addFace(faceID, Integer.toString(faceID), databaseID);
+                            /*if (faceIDsecundario == 1)
+                                CockroachConnector.addFace(faceID, Integer.toString(faceID), databaseID);*/
 
                             // reply ok
                             JSONObject message = new JSONObject();
@@ -526,11 +528,11 @@ public class CMCWorker {
                         SimpleDateFormat input = new SimpleDateFormat("yyyyMMddHHmmssSSS");
                         try {
                             Date dateValue = input.parse(originalDateString);
-                            SimpleDateFormat output = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                            SimpleDateFormat output = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
                             finalDateString = output.format(dateValue);
                         } catch (ParseException e) {
                             e.printStackTrace();
-                            finalDateString = "00-00-0000 00:00:00.000";
+                            finalDateString = "date error";
                         }
 
                         // camID
@@ -553,7 +555,7 @@ public class CMCWorker {
                             ImageIO.write(face, "png", new File(faceCoordsPath));
 
                             // write to cockroach
-                            CockroachConnector.addMovement(label_SRE.get(0), cmbID, camID, (float)coordinates_x, (float)coordinates_y, finalDateString, decodedFace);
+                            CockroachConnector.addMovement(label_SRE.get(0), cmbID, camID, (float)coordinates_x, (float)coordinates_y, finalDateString, decodedImage);
 
                         } else {
 
@@ -567,7 +569,7 @@ public class CMCWorker {
                             ImageIO.write(face, "png", new File(faceCoordsPath));
 
                             // write to cockroach
-                            CockroachConnector.addMovement(label_SRE.get(0), cmbID, camID, (float)coordinates_x, (float)coordinates_y, finalDateString, decodedFace);
+                            CockroachConnector.addMovement(label_SRPL.get(0), cmbID, camID, (float)coordinates_x, (float)coordinates_y, finalDateString, decodedImage);
                         }
                     }
 

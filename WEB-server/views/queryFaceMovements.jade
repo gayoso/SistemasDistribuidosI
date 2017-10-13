@@ -5,9 +5,16 @@ block content
 	p Query a face's movements
 	
 	form(action='/queryFaceMovements', method='post')
-		input(type="text", name="faceID", value=)
-		input(type='submit', value='Query Face ID')
-		
+		div.input
+			input(type="text", name="faceID", value=)
+			input(type='submit', value='Query Face ID')
+		p  
+		div.input
+			input(type="radio", name="server", value="cmc", checked=true)
+			|  CMC 
+			input(type="radio", name="server", value="cmb")
+			|  CMB ID 
+			input(type="text", name="server_cmb", value=)
 	if params.showResponse
 		p #{params.response}
 		

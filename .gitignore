@@ -36,3 +36,4 @@ database_faces_no_match/*
 database_frames/*
 database_SRE/*
 database_SRPL/*
+cockroach/c*
