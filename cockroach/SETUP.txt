@@ -17,14 +17,14 @@ CREATE TABLE faces (
 );
 */
 CREATE TABLE movements (
-	face_id INT NOT NULL,
-	cmb_id INT NOT NULL,
-	cam_id INT NOT NULL,
-	coord_x FLOAT NOT NULL,
-	coord_y FLOAT NOT NULL,
-	date TEXT NOT NULL,
-	image BYTEA NULL,
-	PRIMARY KEY (face_id, cmb_id, cam_id, date)
+face_id INT NOT NULL,
+cmb_id INT NOT NULL,
+cam_id INT NOT NULL,
+coord_x FLOAT NOT NULL,
+coord_y FLOAT NOT NULL,
+date TEXT NOT NULL,
+image BYTEA NULL,
+PRIMARY KEY (face_id, cmb_id, cam_id, date)
 );
 
 # admin htttp

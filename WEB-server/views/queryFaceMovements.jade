@@ -15,14 +15,28 @@ block content
 			input(type="radio", name="server", value="cmb")
 			|  CMB ID 
 			input(type="text", name="server_cmb", value=)
+	
 	if params.showResponse
+		p 
 		p #{params.response}
 		
-		if params.match
-			p Database: #{params.databaseID}
+		if params.match			
+			- var mijson = JSON.stringify(params);
 			
-			each val in params.data
-				img(src='data:image/jpg;base64,#{val.encodedImage}')
-				p. 
-					Date: #{val.date}, Latitude: #{val.coordX}, Longitude: #{val.coordY}
+			form(action='/queryFaceMovements/next', method='post')
+				div.input
+					input(type="hidden", name="params", value=mijson)
+					input(type='submit', name="indiceAccion", value='Prev')
+					|  
+					input(type='submit', name="indiceAccion", value='Next')
+				p  
+				div.input
+					p Database: #{params.databaseID}
+					
+					img(src='#{params.mapURL}', width="500", height="auto")
+					
+					img(src='data:image/jpg;base64,#{params.data[params.dataIndex].encodedImage}', width="500", height="auto")
+					p. 
+						Date: #{params.data[params.dataIndex].date}, Latitude: #{params.data[params.dataIndex].coordX}, Longitude: #{params.data[params.dataIndex].coordY}
+					
 					

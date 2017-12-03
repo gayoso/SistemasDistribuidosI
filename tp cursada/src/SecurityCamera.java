@@ -23,9 +23,9 @@ public class SecurityCamera {
 
         String fileOrDirToSend;
         if (argv.length < 1) {
-            System.out.println(" [E] Please specify a file or directory to send as the first argument. Defaulting to 'camera_frames_test' dir");
             fileOrDirToSend = "../camera_frames_test/";
-            //fileOrDirToSend = "../camera_frames_test/arnold-7.jpg";
+            //fileOrDirToSend = "../camera_frames_test/macri-7.jpg";
+            System.out.println(" [E] Please specify a file or directory to send as the first argument. Defaulting to " + fileOrDirToSend);
         } else {
             fileOrDirToSend = argv[0];
         }
@@ -41,12 +41,12 @@ public class SecurityCamera {
         String CAM_NAME = "CAM" + Integer.toString(CAMid);
 
         // define x location
-        System.out.println("Please enter x coordinates: ");
+        /*System.out.println("Please enter x coordinates: ");
         double coordinates_x = new Scanner(System.in).nextDouble();
 
         // define y location
         System.out.println("Please enter y coordinates: ");
-        double coordinates_y = new Scanner(System.in).nextDouble();
+        double coordinates_y = new Scanner(System.in).nextDouble();*/
 
         // define sleep between frames
         System.out.println("Please enter sleep time (miliseconds) between frames: ");
@@ -132,6 +132,10 @@ public class SecurityCamera {
             message.put("id", imageID);
             message.put("fileSize", image.length);
             message.put("fileByte64", encodedImage);
+
+            Random rand = new Random();
+            double coordinates_x = -1 * (rand.nextInt((34645808 - 34540248) + 1) + 34540248) / 1000000f;
+            double coordinates_y = -1 * (rand.nextInt((58525741 - 58366611) + 1) + 58366611) / 1000000f;
             message.put("coordinatesX", coordinates_x);
             message.put("coordinatesY", coordinates_y);
 

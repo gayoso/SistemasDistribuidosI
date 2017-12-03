@@ -10,7 +10,17 @@ path = require('path'),
 amqp = require('amqplib/callback_api'),
 bodyParser = require('body-parser'),
 fs = require('fs'),
-fileUpload = require('express-fileupload');
+fileUpload = require('express-fileupload'),
+GoogleMapsAPI = require('googlemaps');
+
+var publicConfig = {
+  key: 'AIzaSyBVewWY6ssWSMcda5R-ODP8KISHSO8Sj0c',
+  stagger_time:       1000, // for elevationPath 
+  encode_polylines:   false,
+  secure:             true, // use https 
+  proxy:              'http://127.0.0.1:9999' // optional, set a proxy for HTTP requests 
+};
+var gmAPI = new GoogleMapsAPI(publicConfig);
 
 // **********************************************************
 
@@ -37,8 +47,8 @@ var app = express();
 app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true }));
+app.use(bodyParser.json({limit: '50mb'}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(fileUpload());
 
@@ -51,6 +61,27 @@ app.get('/', function(req, res){
 		params: { title: 'Third Eye Surveillance System - Home' }
     });
 });
+
+function getMapURL(markersStr) {
+	
+	var params = {
+		size: '500x400',
+		maptype: 'roadmap',
+		markers: markersStr,
+		style: [
+			{
+				feature: 'road',
+				element: 'all',
+				rules: {
+					hue: '0x00ff00'
+				}
+			}
+		]
+	};
+
+	return gmAPI.staticMap(params); // return static map URL
+
+}
 
 // GET localhost:3000/queryFaceMovements
 app.get('/queryFaceMovements', function(req, res){
@@ -78,6 +109,8 @@ app.post('/queryFaceMovements', function(req, res){
 		done = true;
 		return;
 	}
+	
+	try {
 	
 	// create conection
 	amqp.connect('amqp://' + rabbitMQserverAddress, function(err, conn) {
@@ -109,19 +142,39 @@ app.post('/queryFaceMovements', function(req, res){
 				}
 				//console.log(tag);
 				
-				ch.publish('CMC_DIRECT', tag, new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
+				try {
+					ch.publish('CMC_DIRECT', tag, new Buffer(JSON.stringify(jsonMessage)), { replyTo: q.queue });
+				}
+				catch (err) {
+					return;
+				}
 				
 				ch.consume(q.queue, function(msg) {
 				
-					console.log(' [.] Got %s', msg.content.toString());
+					//console.log(' [.] Got %s', msg.content.toString());
 					var jsonResponse = JSON.parse(msg.content.toString());
+					
+					var markers = [];
+					for (var i = 0; i < jsonResponse["dataSize"]; ++i) {
+						var data = jsonResponse["data"][i];
+						
+						var marker = {};
+						marker["location"] = data["coordX"] + "," + data["coordY"];
+						markers.push(marker);
+					}
+					
+					var markersNow = JSON.parse(JSON.stringify(markers));
+					markersNow[jsonResponse["dataIndex"]]["label"] = "A";
+					
+					var mapURL = getMapURL(markersNow);
 					
 					res.render('queryFaceMovements.jade',
 					{
 						params: { title: 'Third Eye Surveillance System - Query Face Movements',
 						showResponse: true, response: jsonResponse["response"], match: jsonResponse["match"],
-						databaseID: jsonResponse["databaseID"], numImages: jsonResponse["dataSize"],
-						data: jsonResponse["data"], date: jsonResponse["date"] }
+						databaseID: jsonResponse["databaseID"], dataSize: jsonResponse["dataSize"],
+						data: jsonResponse["data"], dataIndex: jsonResponse["dataIndex"], mapURL: mapURL,
+						markers: markers }
 					});
 					
 					setTimeout(function() { conn.close(); return }, 500);
@@ -148,6 +201,61 @@ app.post('/queryFaceMovements', function(req, res){
 		
 	});
 	
+	}
+	catch(err) {
+		res.render('queryFaceMovements.jade',
+		{
+			params: { title: 'Third Eye Surveillance System - Query Face Movements' }
+		});
+		done = true;
+		return;
+	}
+	
+});
+
+// POST localhost:3000/queryFaceMovements/next
+app.post('/queryFaceMovements/next', function(req, res){
+	
+	console.log(" [x] POST /queryFaceMovements/next");
+	
+	var parsedParams = JSON.parse(req.body.params);
+	
+	if (!req.body || !req.body.params) {
+		res.render('queryFaceMovements.jade',
+		{
+			params: { title: 'Third Eye Surveillance System - Query Face Movements' }
+		});
+		done = true;
+		return;
+		
+	} else {
+	
+		var dataIndex = parsedParams["dataIndex"];
+		
+		if (req.body.indiceAccion == "Prev") {
+			dataIndex = dataIndex - 1;
+		} else {
+			dataIndex = dataIndex + 1;
+		}
+		
+		var n = parsedParams["dataSize"];
+		dataIndex = ((dataIndex%n)+n)%n;
+		
+		var markersNow = JSON.parse(JSON.stringify(parsedParams["markers"]));
+		markersNow[dataIndex]["label"] = "A";
+		var mapURL = getMapURL(markersNow);
+	
+		res.render('queryFaceMovements.jade',
+		{
+			params: { title: 'Third Eye Surveillance System - Query Face Movements',
+			showResponse: true, response: parsedParams["response"], match: parsedParams["match"],
+			databaseID: parsedParams["databaseID"], dataSize: parsedParams["dataSize"],
+			data: parsedParams["data"], dataIndex: dataIndex, mapURL: mapURL,
+			markers: parsedParams["markers"] }
+		});
+	
+	}
+	
 });
 
 // GET localhost:3000/queryFace
@@ -166,7 +274,7 @@ app.post('/queryFace', function(req, res){
 	
 	var done = false;
 	
-	if (!req.files.displayImage) {
+	if (!req.files || !req.files.displayImage) {
 		res.render('queryFace.jade',
 		{
 			params: { title: 'Third Eye Surveillance System - Query Face' }
@@ -253,7 +361,7 @@ app.post('/uploadFace', function(req, res){
 	
 	var done = false;
 	
-	if (!req.files.displayImage) {
+	if (!req.files || !req.files.displayImage) {
 		res.render('uploadFace.jade',
 		{
 			params: { title: 'Third Eye Surveillance System - Upload Face' }
