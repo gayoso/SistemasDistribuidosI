@@ -157,11 +157,13 @@ public class CMCWorker {
 
                         // get database id
                         String databaseID = jsonMessage.getString("databaseID");
+                        System.out.println("databaseID: " + databaseID);
 
                         // get face id
                         int faceID = jsonMessage.getInt("faceID");
+                        System.out.println("faceID: " + faceID);
                         int faceIDsecundario = 0;
-                        if (faceID == -1) { // es una cara nueva, hay que asignarle el siguiente faceID no usado
+                        if (faceID == 0) { // es una cara nueva, hay que asignarle el siguiente faceID no usado
 
                             FilenameFilter imgFilter = new FilenameFilter() {
                                 public boolean accept(File dir, String name) {
@@ -208,7 +210,7 @@ public class CMCWorker {
                             };
 
                             File dir;
-                            if (databaseID == "SRE") {
+                            if (databaseID.equals("SRE")) {
                                 dir = new File("../database_SRE/");
                             } else {
                                 dir = new File("../database_SRPL/");
@@ -216,7 +218,7 @@ public class CMCWorker {
                             File[] files = dir.listFiles(imgFilter);
 
                             for (File file : files) {
-                                //System.out.println(fi le.getName());
+                                System.out.println(file.getName());
 
                                 int labelSecundario = Integer.parseInt((file.getName().split("\\-")[1]).split("\\.(?=[^\\.]+$)")[0]);
                                 if (labelSecundario > faceIDsecundario) {
@@ -225,7 +227,9 @@ public class CMCWorker {
                             }
                             faceIDsecundario++;
                         }
+
                         String faceIDString = faceID + "-" + faceIDsecundario;
+                        System.out.println(faceIDString);
 
                         // get image bytes
                         String encodedImage = jsonMessage.getString("fileByte64");
