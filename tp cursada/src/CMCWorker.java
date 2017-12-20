@@ -499,6 +499,17 @@ public class CMCWorker {
                         String encodedFace = jsonMessage.getString("faceByte64");
                         byte[] decodedFace = Base64.decode(encodedFace);
                         BufferedImage face = FileHelper.imageBytesToBufferedImage(decodedFace);
+
+                        // esta negrada es para que den mejor los resultados si hay una sola cara en la imagen
+                        // al parecer al transformar de BufferedImage a byte[] se esta perdiendo algo de info
+                        // entonces el byte[] que manda el CMB al CMC con la cara ya detectada da peor que
+                        // haciendo la deteccion en el CMC directamente, y usando ese BufferedImage directo
+                        // como aca en teoria se tiene una sola cara, esto no se puede hacer si en la
+                        // imagen original hay mas de dos caras
+                        List<BufferedImage> faces = FrameFaceDetector.detectFaces(FileHelper.imageBytesToBufferedImage(decodedImage));
+                        if (faces.size() == 1)
+                            face = faces.get(0);
+
                         opencv_core.Mat m = FileHelper.bufferedImageToJavacvMat(face);
 
                         // get coordiantes
